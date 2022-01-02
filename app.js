@@ -3,7 +3,6 @@ const ajax = new XMLHttpRequest()
 
 const content = document.createElement('div')
 const root = document.getElementById('root')
-const ul = document.createElement('ul')
 
 const NEWS_URL = 'https://api.hnpwa.com/v0/news/1.json'
 const CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json'
@@ -16,31 +15,52 @@ function getData(url) {
   return JSON.parse(ajax.response)
 }
 
-const newsFeed = getData(NEWS_URL)
-// console.log(newsFeed)
+function newsFeed() {
+  const newsFeed = getData(NEWS_URL)
+  // console.log(newsFeed)
 
-window.addEventListener('hashchange', function () {
-  const id = location.hash.slice(1)
-  const newsContent = getData(CONTENT_URL.replace('@id', id)) // !! replace 활용능력
-  // console.log(newsContent)
+  // DOM API없이 배열로 ul요소까지 구현하기
+  const newsList = []
 
-  const title = document.createElement('h1')
-  title.innerText = newsContent.title
-  content.appendChild(title)
-})
+  newsList.push('<ul>')
 
-for (let i = 0; i < newsFeed.length; i++) {
-  const div = document.createElement('div')
-  div.innerHTML = `
+  for (let i = 0; i < newsFeed.length; i++) {
+    newsList.push(`
   <li>
     <a href="#${newsFeed[i].id}">
       ${newsFeed[i].title} (${newsFeed[i].comments_count})
     </a>
   </li>
-  `
+  `)
+  }
 
-  ul.appendChild(div.firstElementChild)
+  newsList.push('</ul>')
+
+  root.innerHTML = newsList.join('')
 }
 
-root.appendChild(ul)
-root.appendChild(content)
+function newsDetail() {
+  const id = location.hash.slice(1)
+  const newsContent = getData(CONTENT_URL.replace('@id', id)) // !! replace 활용능력
+  // console.log(newsContent)
+
+  const title = document.createElement('h1')
+  root.innerHTML = `
+  <h1>${newsContent.title}</h1>
+  <div>
+    <a href='#'>목록으로</a>
+  </div>
+  `
+}
+
+function router() {
+  const routePath = location.hash // !! location.hash에 #만 들어 있는 경우에는 빈값이 반환된다.
+  if (routePath === '') {
+    newsFeed()
+  } else {
+    newsDetail()
+  }
+}
+
+window.addEventListener('hashchange', router)
+router()
