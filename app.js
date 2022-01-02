@@ -1,19 +1,42 @@
+// API문서 링크 https://github.com/tastejs/hacker-news-pwas/blob/master/docs/api.md
 const ajax = new XMLHttpRequest()
-const HN_URL = 'https://api.hnpwa.com/v0/news/1.json'
 
-ajax.open('GET', HN_URL, false)
+const content = document.createElement('div')
+const root = document.getElementById('root')
+const ul = document.createElement('ul')
+
+const NEWS_URL = 'https://api.hnpwa.com/v0/news/1.json'
+const CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json'
+
+ajax.open('GET', NEWS_URL, false)
 ajax.send()
 
 const newsFeed = JSON.parse(ajax.response)
 // console.log(newsFeed)
 
-const root = document.getElementById('root')
-const ul = document.createElement('ul')
+window.addEventListener('hashchange', function () {
+  const id = location.hash.slice(1)
+
+  ajax.open('GET', CONTENT_URL.replace('@id', id), false) // !! replace 활용능력
+  ajax.send()
+
+  const newsContent = JSON.parse(ajax.response)
+  // console.log(newsContent)
+  const title = document.createElement('h1')
+  title.innerText = newsContent.title
+  content.appendChild(title)
+})
 
 for (let i = 0; i < newsFeed.length; i++) {
   const li = document.createElement('li')
-  li.innerText = newsFeed[i].title
+  const a = document.createElement('a')
+
+  a.href = `#${newsFeed[i].id}`
+  a.innerText = `${newsFeed[i].title} (${newsFeed[i].comments_count})`
+
+  li.appendChild(a)
   ul.appendChild(li)
 }
 
 root.appendChild(ul)
+root.appendChild(content)
