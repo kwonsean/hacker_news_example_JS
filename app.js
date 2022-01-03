@@ -9,6 +9,7 @@ const CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json'
 
 const store = {
   currentPage: 1,
+  feeds: [],
 }
 
 // ajax 호출을 함수로 묶어 중복 제거
@@ -19,8 +20,15 @@ function getData(url) {
   return JSON.parse(ajax.response)
 }
 
+function makeFeeds(feeds) {
+  for (let i = 0; i < feeds.length; i++) {
+    feeds[i].read = false
+  }
+  return feeds
+}
+
 function newsFeed() {
-  const newsFeed = getData(NEWS_URL)
+  let newsFeed = store.feeds
   // console.log(newsFeed)
 
   // DOM API없이 배열로 ul요소까지 구현하기
@@ -49,7 +57,9 @@ function newsFeed() {
   </div>
 </div>
   `
-
+  if (newsFeed.length === 0) {
+    newsFeed = store.feeds = makeFeeds(getData(NEWS_URL))
+  }
   for (let i = (store.currentPage - 1) * 10; i < store.currentPage * 10; i++) {
     newsList.push(`
     <div class="p-6 ${
@@ -120,7 +130,12 @@ function newsDetail() {
       </div>
     </div>
   `
-
+  for (let i = 0; i < store.feeds.length; i++) {
+    if (store.feeds[i].id === Number(id)) {
+      store.feeds[i].read = true
+      break
+    }
+  }
   function makeComment(comments, called = 0) {
     const commentString = []
 
