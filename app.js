@@ -25,31 +25,39 @@ function newsFeed() {
 
   // DOM API없이 배열로 ul요소까지 구현하기
   const newsList = []
-
-  newsList.push('<ul>')
+  let template = `
+    <div class='container mx-auto p-4'>
+      <h1>Hacker News</h1>
+      <ul>
+        {{__news_feed__}}
+      </ul>
+      <div class='pt-10'>
+        <a href='#/page/{{__prev_page__}}'>이전 페이지</a>
+        <a href='#/page/{{__next_page__}}'>다음 페이지</a>
+      </div>
+    </div>
+  `
 
   for (let i = (store.currentPage - 1) * 10; i < store.currentPage * 10; i++) {
     newsList.push(`
-  <li>
-    <a href="#/show/${newsFeed[i].id}">
-      ${newsFeed[i].title} (${newsFeed[i].comments_count})
-    </a>
-  </li>
-  `)
+      <li>
+        <a href="#/show/${newsFeed[i].id}">
+          ${newsFeed[i].title} (${newsFeed[i].comments_count})
+        </a>
+      </li>
+    `)
   }
+  template = template.replace('{{__news_feed__}}', newsList.join(''))
+  template = template.replace(
+    '{{__prev_page__}}',
+    store.currentPage > 1 ? store.currentPage - 1 : 1
+  )
+  template = template.replace(
+    '{{__next_page__}}',
+    store.currentPage < 3 ? store.currentPage + 1 : 3
+  )
 
-  newsList.push('</ul>')
-  newsList.push(`
-    <div>
-      <a href='#/page/${
-        store.currentPage > 1 ? store.currentPage - 1 : 1
-      }'>이전 페이지</a>
-      <a href='#/page/${
-        store.currentPage < 3 ? store.currentPage + 1 : 3
-      }'>다음 페이지</a>
-    </div>
-  `)
-  root.innerHTML = newsList.join('')
+  root.innerHTML = template
 }
 
 function newsDetail() {
