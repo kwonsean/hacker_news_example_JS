@@ -1,0 +1,10 @@
+# REST Client 사용
+# 바로 API호출 결과를 확인할 수 있는 확장 프로그램
+
+###
+GET https://api.hnpwa.com/v0/news/1.json HTTP/1.1
+
+###
+GET https://api.hnpwa.com/v0/item/29790922.json HTTP/1.1
+
+
