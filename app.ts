@@ -6,34 +6,34 @@ const ajax: XMLHttpRequest = new XMLHttpRequest()
 const NEWS_URL = 'https://api.hnpwa.com/v0/news/1.json'
 const CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json'
 
-type Store = {
+interface Store {
   currentPage: number
   feeds: NewsFeed[]
 }
 
-type News = {
-  id: number
-  url: string
-  user: string
-  time_ago: string
-  title: string
+interface News {
+  readonly id: number
+  readonly url: string
+  readonly user: string
+  readonly time_ago: string
+  readonly title: string
 }
 
-type NewsFeed = News & {
-  comments_count: number
-  points: number
+interface NewsFeed extends News {
+  readonly comments_count: number
+  readonly points: number
   read?: boolean
 }
 
-type NewsDetail = News & {
-  content: string
-  comments: NewsComment[]
+interface NewsDetail extends News {
+  readonly content: string
+  readonly comments: NewsComment[]
 }
 
-type NewsComment = News & {
-  content: string
-  comments: NewsComment[]
-  level: number
+interface NewsComment extends News {
+  readonly content: string
+  readonly comments: NewsComment[]
+  readonly level: number
 }
 
 const store: Store = {
