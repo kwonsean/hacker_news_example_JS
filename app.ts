@@ -41,6 +41,35 @@ const store: Store = {
   feeds: [],
 }
 
+class Api {
+  url: string
+  ajax: XMLHttpRequest
+
+  constructor(url: string) {
+    this.url = url
+    this.ajax = new XMLHttpRequest()
+  }
+
+  protected getRequest<AjaxResponse>(): AjaxResponse {
+    this.ajax.open('GET', this.url, false)
+    this.ajax.send()
+
+    return JSON.parse(this.ajax.response)
+  }
+}
+
+class NewsFeedApi extends Api {
+  getData(): NewsFeed[] {
+    return this.getRequest<NewsFeed[]>()
+  }
+}
+
+class NewsDetailApi extends Api {
+  getData(): NewsDetail {
+    return this.getRequest<NewsDetail>()
+  }
+}
+
 // ajax 호출을 함수로 묶어 중복 제거
 function getData<AjaxResponse>(url: string): AjaxResponse {
   ajax.open('GET', url, false)
@@ -66,6 +95,8 @@ function updateView(html: string): void {
 }
 
 function newsFeed(): void {
+  const api = new NewsFeedApi(NEWS_URL)
+
   let newsFeed: NewsFeed[] = store.feeds
   // console.log(newsFeed)
 
@@ -96,8 +127,9 @@ function newsFeed(): void {
 </div>
   `
   if (newsFeed.length === 0) {
-    newsFeed = store.feeds = makeFeeds(getData<NewsFeed[]>(NEWS_URL))
+    newsFeed = store.feeds = makeFeeds(api.getData())
   }
+
   for (let i = (store.currentPage - 1) * 10; i < store.currentPage * 10; i++) {
     newsList.push(`
     <div class="p-6 ${
@@ -138,7 +170,8 @@ function newsFeed(): void {
 
 function newsDetail(): void {
   const id = location.hash.slice(7)
-  const newsContent = getData<NewsDetail>(CONTENT_URL.replace('@id', id)) // !! replace 활용능력
+  const api = new NewsFeedApi(CONTENT_URL.replace('@id', id)) // !! replace 활용능력
+  const newsContent = api.getData()
   // console.log('newsContent!', newsContent)
   let template = `
   <div class="bg-gray-600 min-h-screen pb-8">
