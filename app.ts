@@ -11,6 +11,21 @@ interface Store {
   feeds: NewsFeed[]
 }
 
+function applyApiMixins(targetClass: any, baseClasses: any[]): void {
+  baseClasses.forEach((baseClass) => {
+    Object.getOwnPropertyNames(baseClass.prototype).forEach((name) => {
+      const descriptor = Object.getOwnPropertyDescriptor(
+        baseClass.prototype,
+        name
+      )
+
+      if (descriptor) {
+        Object.defineProperty(targetClass.prototype, name, descriptor)
+      }
+    })
+  })
+}
+
 interface News {
   readonly id: number
   readonly url: string
@@ -42,33 +57,33 @@ const store: Store = {
 }
 
 class Api {
-  url: string
-  ajax: XMLHttpRequest
+  getRequest<AjaxResponse>(url: string): AjaxResponse {
+    const ajax = new XMLHttpRequest()
 
-  constructor(url: string) {
-    this.url = url
-    this.ajax = new XMLHttpRequest()
-  }
+    ajax.open('GET', url, false)
+    ajax.send()
 
-  protected getRequest<AjaxResponse>(): AjaxResponse {
-    this.ajax.open('GET', this.url, false)
-    this.ajax.send()
-
-    return JSON.parse(this.ajax.response)
+    return JSON.parse(ajax.response)
   }
 }
 
-class NewsFeedApi extends Api {
+class NewsFeedApi {
   getData(): NewsFeed[] {
-    return this.getRequest<NewsFeed[]>()
+    return this.getRequest<NewsFeed[]>(NEWS_URL)
   }
 }
 
-class NewsDetailApi extends Api {
-  getData(): NewsDetail {
-    return this.getRequest<NewsDetail>()
+class NewsDetailApi {
+  getData(id: string): NewsDetail {
+    return this.getRequest<NewsDetail>(CONTENT_URL.replace('@id', id)) // !! replace 활용능력
   }
 }
+
+interface NewsFeedApi extends Api {}
+interface NewsDetailApi extends Api {}
+
+applyApiMixins(NewsFeedApi, [Api])
+applyApiMixins(NewsDetailApi, [Api])
 
 // ajax 호출을 함수로 묶어 중복 제거
 function getData<AjaxResponse>(url: string): AjaxResponse {
@@ -95,7 +110,7 @@ function updateView(html: string): void {
 }
 
 function newsFeed(): void {
-  const api = new NewsFeedApi(NEWS_URL)
+  const api = new NewsFeedApi()
 
   let newsFeed: NewsFeed[] = store.feeds
   // console.log(newsFeed)
@@ -170,7 +185,7 @@ function newsFeed(): void {
 
 function newsDetail(): void {
   const id = location.hash.slice(7)
-  const api = new NewsFeedApi(CONTENT_URL.replace('@id', id)) // !! replace 활용능력
+  const api = new NewsFeedApi()
   const newsContent = api.getData()
   // console.log('newsContent!', newsContent)
   let template = `
