@@ -22,6 +22,7 @@ export default class Router {
 
     if (routePath === '' && this.defaultRoute) {
       this.defaultRoute.page.render()
+      return
     }
 
     for (const routeInfo of this.routeTable) {
